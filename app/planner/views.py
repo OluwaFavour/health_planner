@@ -1,4 +1,4 @@
-import requests
+import httpx
 import asyncio
 from typing import Annotated
 from uuid import UUID
@@ -78,14 +78,15 @@ async def get(request: Request):
     """
     # Get websocket token
     try:
-        response = requests.get(
-            f"{request.base_url._url}/planner/get-ws-token",
-        )
-        response.raise_for_status()
-        token = response.json()["token"]
-        html = html.format(token=token)
-        return HTMLResponse(html)
-    except requests.RequestException as e:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{request.base_url._url}/planner/get-ws-token",
+            )
+            response.raise_for_status()
+            token = response.json()["token"]
+            html = html.format(token=token)
+            return HTMLResponse(html)
+    except httpx.HTTPStatusError as e:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"message": f"Error getting WebSocket token: {str(e)}"},
