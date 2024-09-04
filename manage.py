@@ -46,9 +46,9 @@ def runserver(port: Annotated[int, typer.Argument()] = 8000):
     """
     try:
         server_command = (
-            f"fastapi dev app\main.py --port {port}"
+            f"fastapi dev app/main.py --port {port}"
             if get_settings().debug
-            else f"fastapi run app\main.py"
+            else f"fastapi run app/main.py --port {port}"
         )
         print(f"Running FastAPI server: {server_command}")
         subprocess.run(server_command, shell=True, check=True)
