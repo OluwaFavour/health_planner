@@ -1,4 +1,3 @@
-import httpx
 import asyncio
 from typing import Annotated
 from uuid import UUID
@@ -41,9 +40,48 @@ from .questions import load_questions
 router = APIRouter(prefix="/planner", tags=["planner"])
 
 
-@router.get("/")
-async def get(request: Request):
-    html = """
+@router.get(
+    "/get-ws-token",
+    summary="Get a WebSocket token",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Unauthorized",
+            "content": {"application/json": {"example": {"message": "Unauthorized"}}},
+        },
+        status.HTTP_200_OK: {
+            "description": "WebSocket token",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVWE9.eyJzdWIiOiJiNDViMTYwYi0yMTM0LTRlNWYtYWRkZC0yNjNhNDNmMDg0YzAiLCJzY29wZXMiOlsid2Vic29ja2V0Il0sImV4cCI6MTcyNjAzNDMxMn0.gp-t5khHsWBI9Z1iRtZOR9mnfEL1jASCKv9INL6wzlQ"
+                    }
+                }
+            },
+        },
+    },
+)
+async def get_ws_token(
+    user: Annotated[UserModel | None, Depends(get_current_active_user)]
+):
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"message": "Unauthorized"},
+        )
+
+    token = create_jwt_token(
+        {"sub": str(user.id), "scopes": ["websocket"]},
+        get_settings().jwt_secret_key,
+        get_settings().jwt_expires_in_days,
+    )
+
+    return {"token": token}
+
+
+@router.get("/{token}", summary="Chat with the planner", response_class=HTMLResponse)
+async def get(token: Annotated[str, Path(title="WebSocket Token")]):
+    html = f"""
     <!DOCTYPE html>
     <html>
         <head>
@@ -59,38 +97,24 @@ async def get(request: Request):
             </ul>
             <script>
                 var ws = new WebSocket("ws://127.0.0.1:8000/planner/ws/{token}");
-                ws.onmessage = function(event) {
+                ws.onmessage = function(event) {{
                     var messages = document.getElementById('messages')
                     var message = document.createElement('li')
                     var content = document.createTextNode(event.data)
                     message.appendChild(content)
                     messages.appendChild(message)
-                };
-                function sendMessage(event) {
+                }};
+                function sendMessage(event) {{
                     var input = document.getElementById("messageText")
                     ws.send(input.value)
                     input.value = ''
                     event.preventDefault()
-                }
+                }}
             </script>
         </body>
     </html>
     """
-    # Get websocket token
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{request.base_url._url.rstrip('/')}/planner/get-ws-token",
-            )
-            response.raise_for_status()
-            token = response.json()["token"]
-            html = html.format(token=token)
-            return HTMLResponse(html)
-    except httpx.HTTPStatusError as e:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"message": f"Error getting WebSocket token: {str(e)}"},
-        )
+    return HTMLResponse(html)
 
 
 @router.get(
@@ -154,45 +178,6 @@ async def get_plan(
         )
 
     return plan
-
-
-@router.get(
-    "/get-ws-token",
-    summary="Get a WebSocket token",
-    status_code=status.HTTP_200_OK,
-    responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Unauthorized",
-            "content": {"application/json": {"example": {"message": "Unauthorized"}}},
-        },
-        status.HTTP_200_OK: {
-            "description": "WebSocket token",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVWE9.eyJzdWIiOiJiNDViMTYwYi0yMTM0LTRlNWYtYWRkZC0yNjNhNDNmMDg0YzAiLCJzY29wZXMiOlsid2Vic29ja2V0Il0sImV4cCI6MTcyNjAzNDMxMn0.gp-t5khHsWBI9Z1iRtZOR9mnfEL1jASCKv9INL6wzlQ"
-                    }
-                }
-            },
-        },
-    },
-)
-async def get_ws_token(
-    user: Annotated[UserModel | None, Depends(get_current_active_user)]
-):
-    if user is None:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"message": "Unauthorized"},
-        )
-
-    token = create_jwt_token(
-        {"sub": str(user.id), "scopes": ["websocket"]},
-        get_settings().jwt_secret_key,
-        get_settings().jwt_expires_in_days,
-    )
-
-    return {"token": token}
 
 
 @router.websocket("/ws/{token}", name="planner")
