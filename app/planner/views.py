@@ -80,7 +80,7 @@ async def get(request: Request):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{request.base_url._url}/planner/get-ws-token",
+                f"{request.base_url._url.rstrip('/')}/planner/get-ws-token",
             )
             response.raise_for_status()
             token = response.json()["token"]
