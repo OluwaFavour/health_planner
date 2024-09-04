@@ -1,0 +1,134 @@
+[
+    {
+        "question": "What is your weekly or monthly budget for groceries and meals? Reply with an estimate if unsure.",
+        "key": "budget",
+        "plan_type": "meal",
+        "purpose": "Helps tailor meal plans to fit within the user's financial constraints."
+    },
+    {
+        "question": "What are your preferred foods or ingredients?",
+        "key": "food_preferences",
+        "plan_type": "meal",
+        "purpose": "Ensures the meal plan includes foods the user enjoys."
+    },
+    {
+        "question": "Do you have any dietary restrictions or allergies (e.g., gluten-free, nut allergy)?",
+        "key": "food_restrictions",
+        "plan_type": "meal",
+        "purpose": "Avoids including foods that could cause health issues."
+    },
+    {
+        "question": "What foods or ingredients do you currently have in your pantry or fridge?",
+        "key": "current_pantry_items",
+        "plan_type": "meal",
+        "purpose": "Utilizes what the user already has to avoid waste and reduce grocery costs."
+    },
+    {
+        "question": "How many meals and snacks do you need each day?",
+        "key": "meal_frequency",
+        "plan_type": "meal",
+        "purpose": "Tailors the plan to fit the user's eating schedule."
+    },
+    {
+        "question": "How much time do you have available for cooking each day?",
+        "key": "cooking_time",
+        "plan_type": "meal",
+        "purpose": "Matches meal complexity with the user's available cooking time."
+    },
+    {
+        "question": "Are you aiming for a specific daily caloric intake or macronutrient distribution (e.g., high protein, low carb)?",
+        "key": "caloric_goals",
+        "plan_type": "meal",
+        "purpose": "Aligns the meal plan with the user's dietary goals."
+    },
+    {
+        "question": "What foods and fruits are commonly available in your location or local markets?",
+        "key": "local_food_availability",
+        "plan_type": "meal",
+        "purpose": "Ensures the meal plan uses ingredients that are easily accessible."
+    },
+    {
+        "question": "How many push-ups can you perform in one set?",
+        "key": "push_ups",
+        "plan_type": "workout",
+        "purpose": "Tests chest, shoulder, and triceps strength."
+    },
+    {
+        "question": "How many pull-ups or chin-ups can you perform in one set?",
+        "key": "pull_ups",
+        "plan_type": "workout",
+        "purpose": "Assesses back and biceps strength."
+    },
+    {
+        "question": "What is the maximum weight you can bench press for one rep?",
+        "key": "bench_press",
+        "plan_type": "workout",
+        "purpose": "Measures upper body pressing strength."
+    },
+    {
+        "question": "How long can you hold a plank position?",
+        "key": "plank_hold",
+        "plan_type": "workout",
+        "purpose": "Evaluates core endurance and strength."
+    },
+    {
+        "question": "How many sit-ups or crunches can you perform in one minute?",
+        "key": "sit_ups",
+        "plan_type": "workout",
+        "purpose": "Tests abdominal strength and endurance."
+    },
+    {
+        "question": "How many bodyweight squats can you perform in one set?",
+        "key": "squats",
+        "plan_type": "workout",
+        "purpose": "Assesses leg strength and endurance."
+    },
+    {
+        "question": "How many lunges can you perform on each leg?",
+        "key": "lunges",
+        "plan_type": "workout",
+        "purpose": "Tests leg strength, balance, and coordination."
+    },
+    {
+        "question": "What is the maximum weight you can leg press for one rep?",
+        "key": "leg_press",
+        "plan_type": "workout",
+        "purpose": "Measures lower body pushing strength."
+    },
+    {
+        "question": "What is the maximum weight you can deadlift for one rep?",
+        "key": "deadlift",
+        "plan_type": "workout",
+        "purpose": "Evaluates full-body strength, focusing on the posterior chain."
+    },
+    {
+        "question": "How many burpees can you perform in one minute?",
+        "key": "burpees",
+        "plan_type": "workout",
+        "purpose": "Tests overall strength, endurance, and explosive power."
+    },
+    {
+        "question": "How long does it take you to run a mile?",
+        "key": "mile_run",
+        "plan_type": "workout",
+        "purpose": "Provides insight into cardiovascular fitness, which is often related to overall functional strength."
+    },
+    {
+        "question": "How far can you reach forward while sitting with legs extended?",
+        "key": "sit_and_reach",
+        "plan_type": "workout",
+        "purpose": "Assesses lower back and hamstring flexibility, which can affect strength performance."
+    },
+    {
+        "question": "How many days per week do you engage in strength training?",
+        "key": "workout_frequency",
+        "plan_type": "workout",
+        "purpose": "Provides context for current fitness level and workout habits."
+    },
+    {
+        "question": "How would you rate your experience with strength training? (Beginner, Intermediate, Advanced)",
+        "key": "experience_level",
+        "plan_type": "workout",
+        "purpose": "Helps tailor the workout plan based on the user's self-assessed experience level."
+    }
+]
