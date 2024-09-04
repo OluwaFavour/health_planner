@@ -14,6 +14,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse, HTMLResponse
 
+from fastapi.websockets import WebSocketState
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -242,7 +243,8 @@ async def planner(
     except WebSocketException as e:
         print(f"WebSocketException: {e}")
     finally:
-        await websocket.close(status.WS_1001_GOING_AWAY, "Connection closed")
+        if websocket.client_state != WebSocketState.DISCONNECTED:
+            await websocket.close(status.WS_1001_GOING_AWAY, "Connection closed")
 
 
 async def handle_meal_plan(
