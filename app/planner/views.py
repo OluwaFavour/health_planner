@@ -1,3 +1,4 @@
+import requests
 import asyncio
 from typing import Annotated
 from uuid import UUID
@@ -6,6 +7,7 @@ from fastapi import (
     APIRouter,
     Depends,
     Path,
+    Request,
     WebSocket,
     WebSocketDisconnect,
     WebSocketException,
@@ -39,44 +41,55 @@ from .questions import load_questions
 router = APIRouter(prefix="/planner", tags=["planner"])
 
 
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <h1>WebSocket Chat</h1>
-        <form action="" onsubmit="sendMessage(event)">
-            <input type="text" id="messageText" autocomplete="off"/>
-            <button>Send</button>
-        </form>
-        <ul id='messages'>
-        </ul>
-        <script>
-            var ws = new WebSocket("ws://127.0.0.1:8000/planner/ws/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiNDViMTYwYi0yMTM0LTRlNWYtYWRkZC0yNjNhNDNmMDg0YzAiLCJzY29wZXMiOlsid2Vic29ja2V0Il0sImV4cCI6MTcyNjAzNDMxMn0.gp-t5khHsWBI9Z1iRtZOR9mnfEL1jASCKv9INL6wzlQ");
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            };
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
-        </script>
-    </body>
-</html>
-"""
-
-
 @router.get("/")
-async def get():
-    return HTMLResponse(html)
+async def get(request: Request):
+    html = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Chat</title>
+        </head>
+        <body>
+            <h1>WebSocket Chat</h1>
+            <form action="" onsubmit="sendMessage(event)">
+                <input type="text" id="messageText" autocomplete="off"/>
+                <button>Send</button>
+            </form>
+            <ul id='messages'>
+            </ul>
+            <script>
+                var ws = new WebSocket("ws://127.0.0.1:8000/planner/ws/{token}");
+                ws.onmessage = function(event) {
+                    var messages = document.getElementById('messages')
+                    var message = document.createElement('li')
+                    var content = document.createTextNode(event.data)
+                    message.appendChild(content)
+                    messages.appendChild(message)
+                };
+                function sendMessage(event) {
+                    var input = document.getElementById("messageText")
+                    ws.send(input.value)
+                    input.value = ''
+                    event.preventDefault()
+                }
+            </script>
+        </body>
+    </html>
+    """
+    # Get websocket token
+    try:
+        response = requests.get(
+            f"{request.base_url._url}/planner/get-ws-token",
+        )
+        response.raise_for_status()
+        token = response.json()["token"]
+        html = html.format(token=token)
+        return HTMLResponse(html)
+    except requests.RequestException as e:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": f"Error getting WebSocket token: {str(e)}"},
+        )
 
 
 @router.get(
