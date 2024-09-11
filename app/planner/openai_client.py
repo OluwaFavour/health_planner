@@ -76,7 +76,24 @@ class OpenAIClient:
                 ],
                 response_format=MealPlan,
             )
-            return completion.choices[0].message.content
+            plan: MealPlan | None = completion.choices[0].message.parsed
+            if not plan:
+                return "Could not generate a meal plan based on the answers provided."
+            response = f"Here is a meal plan based on your answers:\n\n"
+            response += f"Budget: {plan.budget}\n\n"
+            for day in plan.days:
+                response += f"{day.day}\n"
+                for meal in day.meals:
+                    response += f"\n{meal.meal_type.capitalize()}\n"
+                    response += f"Recipe: {meal.recipe}\n"
+                    response += f"Ingredients: {', '.join(meal.ingredients)}\n"
+                    response += f"Instructions: {meal.instructions}\n"
+                for snack in day.snacks:
+                    response += f"\nSnack\n"
+                    response += f"Recipe: {snack.recipe}\n"
+                    response += f"Ingredients: {', '.join(snack.ingredients)}\n"
+                    response += f"Instructions: {snack.instructions}\n"
+            return response
         except Exception as e:
             if type(e) == LengthFinishReasonError:
                 raise ValueError(
@@ -111,7 +128,22 @@ class OpenAIClient:
                 ],
                 response_format=WorkoutPlan,
             )
-            return completion.choices[0].message.content
+            plan: WorkoutPlan | None = completion.choices[0].message.parsed
+            if not plan:
+                return (
+                    "Could not generate a workout plan based on the answers provided."
+                )
+            response = f"Here is a workout plan based on your answers:\n\n"
+            response += f"Goals: {', '.join(plan.goals)}\n\n"
+            for day in plan.days:
+                response += f"{day.day}\n"
+                for item in day.routine:
+                    response += f"\n{item.exercise}\n"
+                    response += f"Sets: {item.sets}\n"
+                    response += f"Reps per set: {item.reps_per_set}\n"
+                    if item.instructions:
+                        response += f"Instructions: {item.instructions}\n"
+            return response
         except Exception as e:
             if type(e) == LengthFinishReasonError:
                 raise ValueError(

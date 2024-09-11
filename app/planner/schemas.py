@@ -59,15 +59,9 @@ class ExerciseItem(BaseModel):
     instructions: str | None = None  # Instructions are optional
 
 
-class DurationExerciseItem(BaseModel):
-    exercise: str
-    duration: str
-    instructions: str | None = None  # Instructions are optional
-
-
 class DailyWorkoutPlan(BaseModel):
     day: str
-    routine: list[dict[str, str]]
+    routine: list[ExerciseItem]
 
 
 class WorkoutPlan(BaseModel):

@@ -209,11 +209,11 @@ async def planner(
     openai_client = get_openai_client()
 
     try:
+        # Send a welcome message to the user, asking them to provide a meal plan or workout plan
+        await websocket.send_text(
+            "Welcome to the planner! Can I help you with a meal plan or workout plan or both?"
+        )
         while True:
-            # Send a welcome message to the user, asking them to provide a meal plan or workout plan
-            await websocket.send_text(
-                "Welcome to the planner! Can I help you with a meal plan or workout plan or both?"
-            )
 
             data = await websocket.receive_text()
 
