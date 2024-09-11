@@ -31,7 +31,7 @@ class OpenAIClient:
                 messages=[
                     {
                         "role": "system",
-                        "content": "Get the plan choice from this text. It can only be one of the following: 'meal', 'workout', or 'both'.",
+                        "content": "Get the plan choice from this text. It can only be one of the following: 'meal', 'workout', 'both', or 'None'.",
                     },
                     {"role": "user", "content": text},
                 ],
@@ -62,6 +62,9 @@ class OpenAIClient:
 
     def generate_meal_plan(self, answers: dict[str, str]) -> str:
         try:
+            answers_str = "\n".join(
+                [f"{key}: {value}" for key, value in answers.items()]
+            )
             completion = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[
@@ -69,7 +72,7 @@ class OpenAIClient:
                         "role": "system",
                         "content": f"Generate a meal plan based on the user's answers. The user has provided the following answers to the questions: {answers.keys()}. For example, from the answers the user has a budget of {answers['What is your weekly or monthly budget for groceries and meals? Reply with an estimate if unsure.']} NGN.",
                     },
-                    {"role": "user", "content": answers},
+                    {"role": "user", "content": answers_str},
                 ],
                 response_format=MealPlan,
             )
@@ -94,6 +97,9 @@ class OpenAIClient:
 
     def generate_workout_plan(self, answers: dict[str, str]) -> str:
         try:
+            answers_str = "\n".join(
+                [f"{key}: {value}" for key, value in answers.items()]
+            )
             completion = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[
@@ -101,7 +107,7 @@ class OpenAIClient:
                         "role": "system",
                         "content": f"Generate a workout plan based on the user's answers. The user has provided the following answers to the questions: {answers.keys()}. For example, from the answers the user can do {answers['How many push-ups can you perform in one set?']} in one set.",
                     },
-                    {"role": "user", "content": answers},
+                    {"role": "user", "content": answers_str},
                 ],
                 response_format=WorkoutPlan,
             )

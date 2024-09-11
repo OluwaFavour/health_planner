@@ -81,4 +81,4 @@ class CombinedPlan(BaseModel):
 
 
 class DecisionResponse(BaseModel):
-    plan_type: PlanType
+    plan_type: PlanType | None

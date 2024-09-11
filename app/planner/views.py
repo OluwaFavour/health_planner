@@ -220,19 +220,23 @@ async def planner(
             # Process the received message here to determine if it's a meal plan, workout plan, or both
             # and then send the appropriate response back to the client
             try:
+                response = ""
                 choice = await asyncio.to_thread(openai_client.get_plan_choice, data)
-                if choice.value == PlanType.MEAL:
+                print(f"Choice: {choice}")
+                if choice == PlanType.MEAL:
                     response = await handle_meal_plan(
                         websocket, openai_client, user, async_session
                     )
-                elif choice.value == PlanType.WORKOUT:
+                elif choice == PlanType.WORKOUT:
                     response = await handle_workout_plan(
                         websocket, openai_client, user, async_session
                     )
-                elif choice.value == PlanType.BOTH:
+                elif choice == PlanType.BOTH:
                     response = await handle_both_plans(
                         websocket, openai_client, user, async_session
                     )
+                else:
+                    response = "Invalid choice. Please provide a valid choice."
 
                 await websocket.send_text(response)
             except ValueError as e:
@@ -292,6 +296,7 @@ async def handle_meal_plan(
         # Return the generated meal plan description
         return plan_description
     except ValueError as e:
+        await async_session.rollback()
         raise e
 
 
@@ -339,6 +344,7 @@ async def handle_workout_plan(
 
         return plan_description
     except ValueError as e:
+        await async_session.rollback()
         raise e
 
 
@@ -360,4 +366,5 @@ async def handle_both_plans(
         )
         return f"# Meal Plan:\n{meal_plan}\n\n# Workout Plan:\n{workout_plan}"
     except ValueError as e:
+        await async_session.rollback()
         raise e
