@@ -187,19 +187,21 @@ async def planner(
     token: Annotated[str, Path(title="Authorization Token")],
     async_session: Annotated[AsyncSession, Depends(get_async_session)],
 ):
+    # Validate JWT token and user scopes
     payload = verify_jwt_token(token, get_settings().jwt_secret_key)
     if "error" in payload:
         await websocket.close(
             code=status.WS_1008_POLICY_VIOLATION, reason=payload["error"]
         )
         return
-    scopes = payload["scopes"]
-    if "websocket" not in scopes:
+
+    if "websocket" not in payload.get("scopes", []):
         await websocket.close(
             code=status.WS_1008_POLICY_VIOLATION,
             reason="Missing required scope: websocket",
         )
         return
+
     user_id = UUID(payload["sub"])
     user = await get_user_by_id(async_session, user_id)
 
@@ -209,20 +211,28 @@ async def planner(
     openai_client = get_openai_client()
 
     try:
-        # Send a welcome message to the user, asking them to provide a meal plan or workout plan
+        # Send a welcome message
         await websocket.send_text(
-            "Welcome to the planner! Can I help you with a meal plan or workout plan or both?"
+            "Welcome to the planner! Can I help you with a meal plan, workout plan, or both?"
         )
+
         while True:
-
-            data = await websocket.receive_text()
-
-            # Process the received message here to determine if it's a meal plan, workout plan, or both
-            # and then send the appropriate response back to the client
             try:
-                response = ""
+                # Try to receive user data
+                data = await websocket.receive_text()
+
+                # Validate and process user input
+                if not data.strip():
+                    await websocket.send_text(
+                        "Received empty input. Please provide a valid plan request."
+                    )
+                    continue
+
+                # Call OpenAI to classify the user's intent (meal/workout/both)
                 choice = await asyncio.to_thread(openai_client.get_plan_choice, data)
-                print(f"Choice: {choice}")
+                print(f"User choice: {choice}")
+
+                # Determine appropriate response based on user choice
                 if choice == PlanType.MEAL:
                     response = await handle_meal_plan(
                         websocket, openai_client, user, async_session
@@ -236,19 +246,26 @@ async def planner(
                         websocket, openai_client, user, async_session
                     )
                 else:
-                    response = "Invalid choice. Please provide a valid choice."
+                    response = "Invalid choice. Please reply with a message that properly references a meal plan, workout plan, or both."
 
                 await websocket.send_text(response)
-            except ValueError as e:
-                await websocket.send_text(str(e))
-                break
+
+            except ValueError as ve:
+                await websocket.send_text(
+                    f"Error processing your request: {str(ve)}. Please try again."
+                )
+                continue  # Let the user try again
+
     except WebSocketDisconnect as e:
-        print(f"WebSocketDisconnect: {e}")
+        print(f"Client disconnected: {e}")
     except WebSocketException as e:
-        print(f"WebSocketException: {e}")
+        print(f"WebSocketException occurred: {e}")
     finally:
+        # Ensure proper closure of the WebSocket connection if not already closed
         if websocket.client_state != WebSocketState.DISCONNECTED:
-            await websocket.close(status.WS_1001_GOING_AWAY, "Connection closed")
+            await websocket.close(
+                code=status.WS_1001_GOING_AWAY, reason="Connection closed"
+            )
 
 
 async def handle_meal_plan(
